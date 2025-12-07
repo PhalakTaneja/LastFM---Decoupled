@@ -1,0 +1,11 @@
+# Secrets
+.env
+.env.local
+
+#rest of the things
+__pycache__/
+*.pyc
+venv/
+env/
+.vscode/
+.idea/
