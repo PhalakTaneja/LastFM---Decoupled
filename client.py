@@ -7,78 +7,65 @@ from tkinter import messagebox
 from datetime import datetime
 from dotenv import load_dotenv
 
-# Visualization
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-# Spotify (PKCE)
 import spotipy
 from spotipy.oauth2 import SpotifyPKCE
 
 load_dotenv()
 
-# --- CONFIG ---
 API_KEY = os.getenv('API_KEY')
 SERVER_URL = "http://localhost:5000"
 SPOTIPY_CLIENT_ID = os.getenv('SPOTIPY_CLIENT_ID')
 SPOTIPY_REDIRECT_URI = os.getenv('SPOTIPY_REDIRECT_URI')
 
-# Theme
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("green")
 
 class LastFmApp(customtkinter.CTk):
     def __init__(self):
         super().__init__()
-        self.title("Last.fm Client (Dynamic Export)")
+        self.title("Last.fm Client")
         self.geometry("500x520") 
         self.resizable(False, False)
         
         self.setup_ui()
 
     def setup_ui(self):
-        # Header
         self.label = customtkinter.CTkLabel(self, text="Last.fm Data Pipeline", font=("Arial", 18, "bold"))
         self.label.pack(pady=(20, 10))
 
-        # Input
         self.username_entry = customtkinter.CTkEntry(self, width=280, placeholder_text="Enter Last.fm Username")
         self.username_entry.pack(pady=5)
 
-        # 1. Fetch
         self.btn_fetch = customtkinter.CTkButton(self, text="1. Fetch & Store Data", 
                                                  command=self.start_fetch_thread, width=200)
         self.btn_fetch.pack(pady=(15, 5))
 
-        # --- GLOBAL SETTINGS ---
         self.settings_frame = customtkinter.CTkFrame(self, fg_color="transparent")
         self.settings_frame.pack(pady=10)
         
         customtkinter.CTkLabel(self.settings_frame, text="Limit:", text_color="gray").pack(side="left", padx=5)
         
-        # The Global Limit Selector (Restored to 15)
         self.limit_selector = customtkinter.CTkSegmentedButton(self.settings_frame, values=["5", "10", "15"])
-        self.limit_selector.set("5") # Default
+        self.limit_selector.set("5")
         self.limit_selector.pack(side="left")
 
-        # 2. Analytics
         self.btn_analytics = customtkinter.CTkButton(self, text="2. View Analytics Dashboard", 
                                                      fg_color="#444", hover_color="#333",
                                                      command=self.open_analytics, width=200)
         self.btn_analytics.pack(pady=5)
 
-        # 3. Spotify
         self.btn_spotify = customtkinter.CTkButton(self, text="3. Export to Spotify", 
                                                    fg_color="#1DB954", hover_color="#1aa34a",
                                                    text_color="white", width=200,
                                                    command=self.start_spotify_export)
         self.btn_spotify.pack(pady=(15, 5))
 
-        # Status
         self.status_label = customtkinter.CTkLabel(self, text="System Ready", text_color="gray")
         self.status_label.pack(side="bottom", pady=15)
 
-    # --- PIPELINE ---
     def start_fetch_thread(self):
         username = self.username_entry.get().strip()
         if not username: return messagebox.showwarning("Input", "Enter a username.")
@@ -123,14 +110,11 @@ class LastFmApp(customtkinter.CTk):
         except Exception as e:
             self.update_status(f"Pipeline Failed: {str(e)}", "red")
 
-    # --- SPOTIFY LOGIC ---
     def start_spotify_export(self):
         username = self.username_entry.get().strip()
         if not username: return messagebox.showwarning("Input", "Enter a username first.")
         
-        # Get the limit from the selector
         limit = self.limit_selector.get()
-        
         threading.Thread(target=self.run_spotify_export, args=(username, limit), daemon=True).start()
 
     def run_spotify_export(self, username, limit):
@@ -147,7 +131,6 @@ class LastFmApp(customtkinter.CTk):
             user = sp.current_user()
             self.update_status(f"Logged in as {user['display_name']}", "green")
 
-            # 2. Get Analysis (Dynamic Limit)
             resp = requests.get(f"{SERVER_URL}/api/analytics/{username}?limit={limit}")
             if resp.status_code != 200:
                 self.update_status("Fetch failed. Run Step 1 first.", "red")
@@ -159,12 +142,10 @@ class LastFmApp(customtkinter.CTk):
                 self.update_status("No artist data found.", "orange")
                 return
 
-            # 3. Create Playlist
             date_str = datetime.now().strftime("%Y-%m-%d")
             pl_name = f"Top {limit} Artists - {username} ({date_str})"
             playlist = sp.user_playlist_create(user['id'], pl_name, public=True)
             
-            # 4. Find Tracks (With Progress Bar)
             track_uris = []
             total = len(top_artists)
             
@@ -177,7 +158,6 @@ class LastFmApp(customtkinter.CTk):
                 if tracks:
                     track_uris.append(tracks[0]['uri'])
 
-            # 5. Add to Playlist
             if track_uris:
                 sp.playlist_add_items(playlist['id'], track_uris)
                 self.update_status(f"Export Complete! ({len(track_uris)} songs)", "green")
@@ -189,12 +169,10 @@ class LastFmApp(customtkinter.CTk):
             self.update_status(f"Spotify Error: {e}", "red")
             print(f"DEBUG: {e}")
 
-    # --- DASHBOARD LOGIC ---
     def open_analytics(self):
         username = self.username_entry.get().strip()
         if not username: return messagebox.showwarning("Input", "Enter a username.")
         
-        # Get global limit
         current_limit = self.limit_selector.get()
 
         dash = customtkinter.CTkToplevel(self)
@@ -202,13 +180,11 @@ class LastFmApp(customtkinter.CTk):
         dash.geometry("800x600")
         dash.attributes('-topmost', True)
 
-        # Tabs
         tabview = customtkinter.CTkTabview(dash)
         tabview.pack(fill="both", expand=True, padx=20, pady=20)
         self.tab_artist = tabview.add("Top Artists")
         self.tab_album = tabview.add("Top Albums")
 
-        # Load with current limit
         self.refresh_charts(username, current_limit, tabview)
 
     def refresh_charts(self, username, limit, tabview):
