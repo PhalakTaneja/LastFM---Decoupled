@@ -2,4 +2,4 @@ A Python data pipeline that fetches your Last.fm listening history, cleans and s
 
 After cloning the repo, run the server.py first and then run client.py in a different terminal.
 
-P.S. -  The feature of making a playlist out of your top 'scrobbles' is redacted for now. Don't be sad it'll be back :)
+Edit: Playlists are being generated, Oauth will be implemented for all the other users as well.
