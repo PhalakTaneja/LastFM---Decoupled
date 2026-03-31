@@ -20,9 +20,7 @@ def get_db_connection():
 
 @app.route('/api/tracks', methods=['POST'])
 def save_tracks():
-    """
-    Receives a payload of tracks and snapshots them into a user-specific table.
-    """
+    
     conn = None
     cursor = None
     try:
@@ -36,7 +34,6 @@ def save_tracks():
         conn = get_db_connection()
         cursor = conn.cursor()
 
-        # Sanitize username for table creation
         safe_username = username.replace('-', '_').replace(' ', '_')
         table_name = f"tracks_{safe_username}"
         
@@ -50,7 +47,7 @@ def save_tracks():
             )
         """)
         
-        # Snapshot strategy: Wipe old data to maintain only the recent batch
+        
         cursor.execute(f"DELETE FROM `{table_name}`")
         cursor.execute(f"ALTER TABLE `{table_name}` AUTO_INCREMENT = 1")
 
@@ -71,9 +68,7 @@ def save_tracks():
 
 @app.route('/api/analytics/<username>', methods=['GET'])
 def get_analytics(username):
-    """
-    Returns aggregated top stats (Artists/Albums) for a specific user.
-    """
+    
     conn = None
     cursor = None
     try:

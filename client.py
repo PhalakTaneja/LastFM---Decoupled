@@ -33,13 +33,13 @@ class LastFmApp(customtkinter.CTk):
         self.setup_ui()
 
     def setup_ui(self):
-        self.label = customtkinter.CTkLabel(self, text="Last.fm Data Pipeline", font=("Arial", 18, "bold"))
+        self.label = customtkinter.CTkLabel(self, text="Last.fm ETL Pipeline", font=("Arial", 18, "bold"))
         self.label.pack(pady=(20, 10))
 
         self.username_entry = customtkinter.CTkEntry(self, width=280, placeholder_text="Enter Last.fm Username")
         self.username_entry.pack(pady=5)
 
-        self.btn_fetch = customtkinter.CTkButton(self, text="1. Fetch & Store Data", 
+        self.btn_fetch = customtkinter.CTkButton(self, text="Fetch & Store Data", 
                                                  command=self.start_fetch_thread, width=200)
         self.btn_fetch.pack(pady=(15, 5))
 
@@ -52,12 +52,12 @@ class LastFmApp(customtkinter.CTk):
         self.limit_selector.set("5")
         self.limit_selector.pack(side="left")
 
-        self.btn_analytics = customtkinter.CTkButton(self, text="2. View Analytics Dashboard", 
+        self.btn_analytics = customtkinter.CTkButton(self, text="View Analytics Dashboard", 
                                                      fg_color="#444", hover_color="#333",
                                                      command=self.open_analytics, width=200)
         self.btn_analytics.pack(pady=5)
 
-        self.btn_spotify = customtkinter.CTkButton(self, text="3. Export to Spotify", 
+        self.btn_spotify = customtkinter.CTkButton(self, text="Export to Spotify", 
                                                    fg_color="#1DB954", hover_color="#1aa34a",
                                                    text_color="white", width=200,
                                                    command=self.start_spotify_export)
